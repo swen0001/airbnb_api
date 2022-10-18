@@ -1,10 +1,11 @@
 from rest_framework import serializers
-from users.serializers import RelatedUserSerializer
+from users.serializers import UserSerializer
 from .models import Room
 
 
 class RoomSerializer(serializers.ModelSerializer):
-    user = RelatedUserSerializer()
+    user = UserSerializer()
+    is_fav = serializers.SerializerMethodField()
 
     class Meta:
         model = Room
@@ -21,4 +22,12 @@ class RoomSerializer(serializers.ModelSerializer):
         if check_in == check_out:
             raise serializers.ValidationError('Text error')
         return data
+
+    def get_is_fav(self, obj):
+        request = self.context.get('request')
+        if request:
+            user = request.user
+            if user.is_authenticated:
+                return obj in user.favs.all()
+        return False
 
